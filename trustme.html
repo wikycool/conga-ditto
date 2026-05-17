@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trust me...</title>
+  <!-- Modern premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Core Font setup */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+      color: #fff;
+    }
+
+    /* Splash/Landing Screen */
+    #splashScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #000;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+
+    .splash-card {
+      text-align: center;
+      max-width: 450px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 40px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      transform: translateY(0);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .splash-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .splash-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ff80ec, #a15fff, #3ba8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .splash-subtitle {
+      font-size: 1.05rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 35px;
+      font-weight: 300;
+    }
+
+    /* Glow Button Animation */
+    .glow-button {
+      cursor: pointer;
+      background: #735290;
+      color: #fff;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px 30px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glow-button:hover {
+      transform: scale(1.05);
+      background: #8e6bae;
+    }
+
+    .glow-button:active {
+      transform: scale(0.98);
+    }
+
+    /* Loading Indicator */
+    #loadingIndicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #0d0d12;
+      transition: opacity 0.5s ease, visibility 0.5s;
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    #loadingIndicator.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.08);
+      border-top: 4px solid #a15fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #loadingIndicator span {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    /* Canvas styling */
+    #congaCanvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      transition: opacity 1s ease;
+      opacity: 0;
+    }
+
+    #congaCanvas.active {
+      opacity: 1;
+    }
+
+    /* Premium Glassmorphic Control Panel Drawer */
+    #controlPanel {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 90%;
+      max-width: 600px;
+      background: rgba(20, 20, 30, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: none;
+      border-radius: 24px 24px 0 0;
+      z-index: 100;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 0 25px 25px 25px;
+    }
+
+    #controlPanel:not(.collapsed) {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Drawer Toggle Tab */
+    .control-tab {
+      position: absolute;
+      top: -46px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 20, 30, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: none;
+      border-radius: 16px 16px 0 0;
+      padding: 10px 24px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .control-tab:hover {
+      background: rgba(30, 30, 45, 0.95);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .tab-icon {
+      display: inline-block;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    /* Panel Internal Content */
+    .panel-content {
+      max-height: 50vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+      padding-top: 20px;
+    }
+
+    .panel-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .panel-content::-webkit-scrollbar-thumb {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+    }
+
+    .panel-header {
+      margin-bottom: 25px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 15px;
+    }
+
+    .panel-header h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #a15fff, #ff80ec);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .panel-header p {
+      font-size: 0.88rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 2px;
+    }
+
+    /* Form Controls Custom Styling */
+    .control-group {
+      margin-bottom: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      color: rgba(255, 255, 255, 0.85);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    label span {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #ff80ec;
+      background: rgba(255, 128, 236, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    select {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    select:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    select:focus {
+      border-color: #a15fff;
+      box-shadow: 0 0 10px rgba(161, 95, 255, 0.3);
+    }
+
+    option {
+      background: #14141e;
+      color: #fff;
+    }
+
+    /* Premium Range Slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      outline: none;
+      margin: 10px 0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #a15fff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 10px rgba(161, 95, 255, 0.6);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      background: #ff80ec;
+      box-shadow: 0 0 15px rgba(255, 128, 236, 0.8);
+    }
+
+    .control-hint {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.4);
+      font-weight: 300;
+      margin-top: -2px;
+    }
+
+    /* Custom File Upload Styling */
+    .file-input-wrapper {
+      display: flex;
+      margin-top: 4px;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      display: none;
+    }
+
+    .file-label {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: rgba(161, 95, 255, 0.1);
+      border: 1px dashed rgba(161, 95, 255, 0.4);
+      color: #a15fff;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-label:hover {
+      background: rgba(161, 95, 255, 0.18);
+      border-color: #a15fff;
+    }
+
+    /* Color Picker Styling */
+    .color-picker-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 4px;
+    }
+
+    .color-picker-wrapper input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: none;
+    }
+
+    .color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    .color-picker-wrapper input[type="color"]::-webkit-color-swatch {
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+    }
+
+    /* Utility Hidden state */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Share Box styling */
+    .share-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 18px;
+      margin-top: 25px;
+    }
+
+    .share-box h3 {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #ff80ec;
+      margin-bottom: 6px;
+    }
+
+    .share-box p {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Audio Element -->
+  <audio id="bgAudio" loop crossorigin="anonymous"></audio>
+
+  <!-- Initial Splash Landing Screen -->
+  <div id="splashScreen">
+    <button id="trustBtn" class="glow-button">Trust me</button>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div id="loadingIndicator">
+    <div class="spinner"></div>
+    <span>Preparing the groove...</span>
+  </div>
+
+  <!-- Fullscreen Dance Floor Canvas -->
+  <canvas id="congaCanvas"></canvas>
+
+
+
+  <script>
+    // Track audio sources
+    const TRACKS = {
+      conga: "https://matias.me/nsfw/konga.92cb31af.mp3",
+      caramelldansen: "https://ia800905.us.archive.org/21/items/caramelldansen-swedish-original-official/Caramelldansen%20(Swedish%20Original%20Official).mp3",
+      rickroll: "https://ia801602.us.archive.org/11/items/Rick_Astley_Never_Gonna_Give_You_Up/Rick_Astley_Never_Gonna_Give_You_Up.mp3"
+    };
+
+    // Default Ditto Spritesheet (4 frames, 33x29 each)
+    const DEFAULT_SPRITESHEET = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIQAAAAdAgMAAAAWQyy/AAAADFBMVEX///+4YOA4ODj4+PhASPNeAAAAAXRSTlMAQObYZgAAAStJREFUeF6l08FqhEAMBuBhbk6fYyj6Pgmul3pZEN9hWV8i9FgvC3X6PELpe2zP9Y/pyCLLFprLoP83STzo/lv+/ZEoGGwMw10RacmePmML4PfOjyqev6WGKDs/Kth40QiEXInxLPzxle+WHUS8kgoi6vU8zzaobIQB31R4QrU4T9RVKl5ngpheaBP1KlmWLlU4z0iCJioORKxCmzm5nDSJAOx0jxthdEBwzOLIkJyFIEGgQpvVqxSMhVRxQKCiEYhozQtbPV/Fmx6iJE5ErYkWgi8mlOYkEiVZxQRpglUojSZB9wJUTDoxkTeMN4J3ot0JT79CTMifRUmUEtV5803EJcD3+5ScS+MmML+feHBhCcKSWOVvw9s07H+LTdwvL/1Fp9yvaggJUx/WD0e0wREEScedAAAAAElFTkSuQmCC";
+
+    // Application State
+    const state = {
+      isPlaying: false,
+      speed: 1.0,
+      bgTheme: "original",
+      spawnRate: 0.6,
+      mainSizePercent: 80,
+      bgOpacityPercent: 40,
+      sprite: {
+        image: null,
+        framesCount: 4,
+        frameWidth: 33,
+        frameHeight: 29
+      },
+      customAudioUrl: null,
+      customSpriteUrl: null,
+      backgroundColor: "#00ff00",
+      containerColor: "#ff00ff",
+      timeSinceLastSpawn: 0,
+      timeSinceLastColorChange: 0,
+      hue: 0
+    };
+
+    // DOM Elements
+    const splashScreen = document.getElementById("splashScreen");
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    const trustBtn = document.getElementById("trustBtn");
+    const canvas = document.getElementById("congaCanvas");
+    const ctx = canvas.getContext("2d");
+    const audio = document.getElementById("bgAudio");
+
+
+
+    let entities = [];
+    let protagonist = null;
+    let lastTime = 0;
+
+    function randomColor() {
+      return "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    }
+
+    function drawRoundedRect(ctx, x, y, width, height, radius) {
+      if (width < 2 * radius) radius = width / 2;
+      if (height < 2 * radius) radius = height / 2;
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + width, y, x + width, y + height, radius);
+      ctx.arcTo(x + width, y + height, x, y + height, radius);
+      ctx.arcTo(x, y + height, x, y, radius);
+      ctx.arcTo(x, y, x + width, y, radius);
+      ctx.closePath();
+      return ctx;
+    }
+
+    function loadDefaultSprite(callback) {
+      const img = new Image();
+      img.onload = () => {
+        state.sprite.image = img;
+        state.sprite.framesCount = 4;
+        state.sprite.frameWidth = 33;
+        state.sprite.frameHeight = 29;
+        if (callback) callback();
+      };
+      img.src = DEFAULT_SPRITESHEET;
+    }
+
+    function initFileHandlers() {
+      audioUpload.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          if (state.customAudioUrl) URL.revokeObjectURL(state.customAudioUrl);
+          state.customAudioUrl = URL.createObjectURL(file);
+          document.querySelector('label[for="audioUpload"]').textContent = file.name;
+          if (state.isPlaying) {
+            audio.src = state.customAudioUrl;
+            audio.play().catch(err => console.log("Audio play blocked:", err));
+            updateAudioSpeed();
+          }
+        }
+      });
+
+      spriteUpload.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const img = new Image();
+          img.onload = () => {
+            state.sprite.image = img;
+            const ratio = img.width / img.height;
+            if (ratio >= 3.5 && ratio <= 5.5) {
+              state.sprite.framesCount = 4;
+              state.sprite.frameWidth = Math.floor(img.width / 4);
+              state.sprite.frameHeight = img.height;
+            } else {
+              state.sprite.framesCount = 1;
+              state.sprite.frameWidth = img.width;
+              state.sprite.frameHeight = img.height;
+            }
+            document.querySelector('label[for="spriteUpload"]').textContent = file.name;
+            rebuildProtagonist();
+          };
+          img.src = URL.createObjectURL(file);
+        }
+      });
+    }
+
+    function rebuildProtagonist() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const maxDim = Math.min(w * 0.8, 600) * (state.mainSizePercent / 100);
+      
+      const spriteW = state.sprite.frameWidth;
+      const spriteH = state.sprite.frameHeight;
+      const scale = Math.min(maxDim / spriteW, maxDim / spriteH);
+      
+      const displayW = spriteW * scale;
+      const displayH = spriteH * scale;
+
+      const currentFrame = protagonist ? protagonist.animationFrame : 0;
+      const currentTime = protagonist ? protagonist.time : 0;
+
+      protagonist = {
+        animationFrame: currentFrame,
+        time: currentTime,
+        origin: {
+          x: Math.round((w - displayW) / 2),
+          y: Math.round((h - displayH) / 2)
+        },
+        size: {
+          width: displayW,
+          height: displayH
+        },
+        speed: { x: 0, y: 0 },
+        opacity: 1
+      };
+    }
+
+    function createBackgroundDancer() {
+      const isFromLeft = Math.random() > 0.5;
+      const sizeFactor = Math.floor(Math.random() * 12) + 4;
+      const opacity = (Math.random() * 0.8 + 0.2) * (state.bgOpacityPercent / 100);
+      const speedX = (Math.floor(Math.random() * 600) + 400) * (isFromLeft ? 1 : -1) * state.speed;
+      
+      const spriteW = state.sprite.frameWidth;
+      const spriteH = state.sprite.frameHeight;
+      const displayW = spriteW * sizeFactor;
+      const displayH = spriteH * sizeFactor;
+
+      return {
+        animationFrame: Math.floor(Math.random() * state.sprite.framesCount),
+        time: 0,
+        origin: {
+          x: isFromLeft ? -displayW : canvas.width,
+          y: Math.floor(Math.random() * (canvas.height - displayH))
+        },
+        size: {
+          width: displayW,
+          height: displayH
+        },
+        speed: { x: speedX, y: 0 },
+        opacity: opacity
+      };
+    }
+
+    function startPlayback() {
+      loadingIndicator.classList.add("visible");
+      
+      let source = TRACKS.conga;
+
+      audio.src = source;
+      audio.load();
+      
+      audio.play()
+        .then(() => {
+          loadingIndicator.classList.remove("visible");
+          splashScreen.style.opacity = "0";
+          splashScreen.style.visibility = "hidden";
+          canvas.classList.add("active");
+          
+          state.isPlaying = true;
+          updateAudioSpeed();
+          
+          lastTime = Date.now();
+          requestAnimationFrame(updateLoop);
+        })
+        .catch(err => {
+          console.error("Playback error:", err);
+          alert("Could not play track.");
+          loadingIndicator.classList.remove("visible");
+        });
+    }
+
+    function updateAudioSpeed() {
+      if (audio) {
+        audio.playbackRate = state.speed;
+      }
+    }
+
+    function updateLoop() {
+      if (!state.isPlaying) return;
+
+      const now = Date.now();
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      update(dt);
+      render();
+
+      requestAnimationFrame(updateLoop);
+    }
+
+    function update(dt) {
+      state.timeSinceLastSpawn += dt;
+      const spawnThreshold = (0.5 / state.spawnRate) / state.speed;
+      if (state.timeSinceLastSpawn >= spawnThreshold) {
+        state.timeSinceLastSpawn = 0;
+        const num = Math.random() > 0.7 ? 2 : 1;
+        for (let i = 0; i < num; i++) {
+          entities.push(createBackgroundDancer());
+        }
+      }
+
+      state.timeSinceLastColorChange += dt;
+      if (state.bgTheme === "original") {
+        const flashThreshold = 0.4 / state.speed;
+        if (state.timeSinceLastColorChange >= flashThreshold) {
+          state.timeSinceLastColorChange = 0;
+          state.backgroundColor = randomColor();
+          state.containerColor = randomColor();
+        }
+      } else if (state.bgTheme === "gradient") {
+        state.hue = (state.hue + dt * 100 * state.speed) % 360;
+      }
+
+      if (protagonist) {
+        protagonist.time += dt;
+        const frameDuration = 0.085 / state.speed;
+        if (protagonist.time >= frameDuration) {
+          protagonist.time = 0;
+          protagonist.animationFrame = (protagonist.animationFrame + 1) % state.sprite.framesCount;
+        }
+        rebuildProtagonist();
+      }
+
+      const activeEntities = [];
+      const frameDuration = 0.085 / state.speed;
+
+      for (let i = 0; i < entities.length; i++) {
+        const ent = entities[i];
+        ent.time += dt;
+        if (ent.time >= frameDuration) {
+          ent.time = 0;
+          ent.animationFrame = (ent.animationFrame + 1) % state.sprite.framesCount;
+        }
+
+        ent.origin.x += ent.speed.x * dt;
+        const padding = ent.size.width;
+        if (ent.speed.x > 0 && ent.origin.x < canvas.width + padding) {
+          activeEntities.push(ent);
+        } else if (ent.speed.x < 0 && ent.origin.x > -padding) {
+          activeEntities.push(ent);
+        }
+      }
+      entities = activeEntities;
+    }
+
+    function render() {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.imageSmoothingEnabled = false;
+
+      if (state.bgTheme === "original") {
+        ctx.fillStyle = state.backgroundColor;
+        ctx.fillRect(0, 0, w, h);
+        
+        if (w > 24 && h > 24) {
+          drawRoundedRect(ctx, 32, 32, w - 64, h - 64, 12);
+          ctx.fillStyle = state.containerColor;
+          ctx.fill();
+        }
+      } else if (state.bgTheme === "gradient") {
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, `hsl(${state.hue}, 80%, 50%)`);
+        grad.addColorStop(1, `hsl(${(state.hue + 120) % 360}, 80%, 50%)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+        
+        if (w > 24 && h > 24) {
+          drawRoundedRect(ctx, 32, 32, w - 64, h - 64, 12);
+          ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+          ctx.fill();
+        }
+      } else {
+        let bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        let borderGrad = "rgba(0,0,0,0.4)";
+        
+        switch (state.bgTheme) {
+          case "sunset":
+            bgGrad.addColorStop(0, "#ff5e62");
+            bgGrad.addColorStop(1, "#ff9966");
+            borderGrad = "rgba(0, 0, 0, 0.25)";
+            break;
+          case "neon":
+            bgGrad.addColorStop(0, "#f72585");
+            bgGrad.addColorStop(1, "#7209b7");
+            borderGrad = "rgba(255, 255, 255, 0.05)";
+            break;
+          case "ocean":
+            bgGrad.addColorStop(0, "#03001e");
+            bgGrad.addColorStop(0.5, "#7303c0");
+            bgGrad.addColorStop(1, "#ec38bc");
+            borderGrad = "rgba(0, 0, 0, 0.5)";
+            break;
+          case "solid":
+            bgGrad = state.backgroundColor;
+            borderGrad = "rgba(0, 0, 0, 0.15)";
+            break;
+        }
+
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+        
+        if (w > 24 && h > 24) {
+          drawRoundedRect(ctx, 32, 32, w - 64, h - 64, 12);
+          ctx.fillStyle = borderGrad;
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < entities.length; i++) {
+        const ent = entities[i];
+        ctx.globalAlpha = ent.opacity;
+        const sx = ent.animationFrame * state.sprite.frameWidth;
+        ctx.drawImage(
+          state.sprite.image,
+          sx, 0, state.sprite.frameWidth, state.sprite.frameHeight,
+          ent.origin.x, ent.origin.y, ent.size.width, ent.size.height
+        );
+      }
+
+      if (protagonist) {
+        ctx.globalAlpha = 1;
+        const sx = protagonist.animationFrame * state.sprite.frameWidth;
+        ctx.drawImage(
+          state.sprite.image,
+          sx, 0, state.sprite.frameWidth, state.sprite.frameHeight,
+          protagonist.origin.x, protagonist.origin.y, protagonist.size.width, protagonist.size.height
+        );
+      }
+      
+      ctx.globalAlpha = 1;
+    }
+
+    function handleResize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      if (state.isPlaying) {
+        rebuildProtagonist();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      handleResize();
+      window.addEventListener("resize", handleResize);
+
+      loadDefaultSprite(() => {
+        rebuildProtagonist();
+      });
+
+      trustBtn.addEventListener("click", () => {
+        startPlayback();
+      });
+    });
+  </script>
+</body>
+</html>

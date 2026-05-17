@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conga! (Customized)</title>
+  <!-- Modern premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Audio Element -->
+  <audio id="bgAudio" loop crossorigin="anonymous"></audio>
+
+  <!-- Initial Splash Landing Screen -->
+  <div id="splashScreen">
+    <button id="trustBtn" class="glow-button">Trust me</button>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div id="loadingIndicator">
+    <div class="spinner"></div>
+    <span>Preparing the groove...</span>
+  </div>
+
+  <!-- Fullscreen Dance Floor Canvas -->
+  <canvas id="congaCanvas"></canvas>
+
+
+
+  <!-- Core JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
